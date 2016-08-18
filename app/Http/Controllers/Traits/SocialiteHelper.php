@@ -1,14 +1,14 @@
 <?php namespace App\Http\Controllers\Traits;
 
-use Auth;
-use Socialite;
-use Illuminate\Http\Request;
 use App\Models\User;
+use Auth;
 use Flash;
+use Illuminate\Http\Request;
+use Socialite;
 
 trait SocialiteHelper
 {
-    protected $oauthDrivers = ['github' => 'github', 'wechat' => 'weixin'];
+    protected $oauthDrivers = ['github' => 'github', 'wechat' => 'weixin', 'kuaiyudian' => 'kuaiyudian'];
 
     public function oauth(Request $request)
     {
@@ -64,6 +64,9 @@ trait SocialiteHelper
         } elseif ($driver == 'wechat') {
             $currentUser->wechat_openid = $oauthUser->id;
             $currentUser->wechat_unionid = $oauthUser->user['unionid'];
+        }
+         } elseif ($driver == 'kuaiyudian') {
+            $currentUser->kuaiyudian_id = $oauthUser->id;
         }
 
         $currentUser->save();
