@@ -30,7 +30,12 @@ AuthorizableContract
     ];
 
     use EntrustUserTrait {
-        restore as restoreEntrust;EntrustUserTrait::canasmay;}useSoftDeletes{restoreasrestoreSoftDelete;}useFollowTrait;protected $dates = ['deleted_at'];
+        restore as private restoreEntrust;
+        EntrustUserTrait::can as may;
+    }
+    use SoftDeletes { restore as private restoreSoftDelete; }
+    use FollowTrait;
+    protected $dates = ['deleted_at'];
 
     protected $table = 'users';
     protected $guarded = ['id', 'is_banned'];
