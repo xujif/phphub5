@@ -49,8 +49,8 @@ class User extends Model implements AuthenticatableContract,
         static::created(function ($user) {
             $driver = $user['register_source'];
             SiteStatus::newUser($driver);
-
-            dispatch(new SendActivateMail($user));
+			if($driver != 'kuaiyudian')
+				dispatch(new SendActivateMail($user));
         });
 
         static::deleted(function ($user) {
