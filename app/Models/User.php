@@ -2,31 +2,33 @@
 
 namespace App\Models;
 
-use App\Models\Traits\UserAvatarHelper;
-use App\Models\Traits\UserRememberTokenHelper;
-use App\Models\Traits\UserSocialiteHelper;
-use Cache;
-use Carbon\Carbon;
-use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
-use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Laracasts\Presenter\PresentableTrait;
-use Smartisan\Follow\FollowTrait;
-use Venturecraft\Revisionable\RevisionableTrait;
 use Zizaco\Entrust\Traits\EntrustUserTrait;
+use Illuminate\Foundation\Auth\Access\Authorizable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
+use Laracasts\Presenter\PresentableTrait;
+use Venturecraft\Revisionable\RevisionableTrait;
+use Smartisan\Follow\FollowTrait;
+use App\Jobs\SendActivateMail;
+use App\Models\Traits\UserRememberTokenHelper;
+use App\Models\Traits\UserSocialiteHelper;
+use App\Models\Traits\UserAvatarHelper;
+use Carbon\Carbon;
+use Cache;
 
 class User extends Model implements AuthenticatableContract,
-AuthorizableContract
+                                    AuthorizableContract
 {
-    use UserRememberTokenHelper, UserSocialiteHelper, UserAvatarHelper;
+    use UserRememberTokenHelper,UserSocialiteHelper,UserAvatarHelper;
     use PresentableTrait;
     public $presenter = 'Phphub\Presenters\UserPresenter';
 
     // For admin log
     use RevisionableTrait;
     protected $keepRevisionOf = [
-        'is_banned',
+        'is_banned'
     ];
 
     use EntrustUserTrait {
@@ -37,18 +39,18 @@ AuthorizableContract
     use FollowTrait;
     protected $dates = ['deleted_at'];
 
-    protected $table = 'users';
+    protected $table   = 'users';
     protected $guarded = ['id', 'is_banned'];
 
-    function boot()
+    public static function boot()
     {
         parent::boot();
 
         static::created(function ($user) {
-            $driver = $user['kuaiyudian_id'] ? 'kuaiyudian' : 'other';
+            $driver = $user['kuaiyudian_id'] ? 'kuaiyudian' : 'github';
             SiteStatus::newUser($driver);
 
-            // dispatch(new SendActivateMail($user));
+            dispatch(new SendActivateMail($user));
         });
 
         static::deleted(function ($user) {
@@ -56,16 +58,16 @@ AuthorizableContract
         });
     }
 
-    function scopeIsRole($query, $role)
+    public function scopeIsRole($query, $role)
     {
         return $query->whereHas('roles', function ($query) use ($role) {
-            $query->where('name', $role);
-        }
+                $query->where('name', $role);
+            }
         );
     }
-    function hallOfFamesUsers()
+    public static function hallOfFamesUsers()
     {
-        $data = Cache::remember('phphub_hall_of_fames', 60, function () {
+        $data = Cache::remember('phphub_hall_of_fames', 60, function(){
             return User::isRole('HallOfFame')->orderBy('last_actived_at', 'desc')->get();
         });
         return $data;
@@ -74,43 +76,43 @@ AuthorizableContract
     /**
      * For EntrustUserTrait and SoftDeletes conflict
      */
-    function restore()
+    public function restore()
     {
         $this->restoreEntrust();
         $this->restoreSoftDelete();
     }
 
-    function votedTopics()
+    public function votedTopics()
     {
         return $this->morphedByMany(Topic::class, 'votable', 'votes')->withPivot('created_at');
     }
 
-    function topics()
+    public function topics()
     {
         return $this->hasMany(Topic::class);
     }
 
-    function replies()
+    public function replies()
     {
         return $this->hasMany(Reply::class);
     }
 
-    function notifications()
+    public function notifications()
     {
         return $this->hasMany(Notification::class)->recent()->with('topic', 'fromUser')->paginate(20);
     }
 
-    function scopeRecent($query)
+    public function scopeRecent($query)
     {
         return $query->orderBy('created_at', 'desc');
     }
 
-    function getIntroductionAttribute($value)
+    public function getIntroductionAttribute($value)
     {
         return str_limit($value, 68);
     }
 
-    function getPersonalWebsiteAttribute($value)
+    public function getPersonalWebsiteAttribute($value)
     {
         return str_replace(['https://', 'http://'], '', $value);
     }
@@ -121,17 +123,17 @@ AuthorizableContract
      * ----------------------------------------
      */
 
-    function getAuthIdentifier()
+    public function getAuthIdentifier()
     {
         return $this->getKey();
     }
 
-    function getAuthPassword()
+    public function getAuthPassword()
     {
         return $this->password;
     }
 
-    function recordLastActivedAt()
+    public function recordLastActivedAt()
     {
         $now = Carbon::now()->toDateTimeString();
 
