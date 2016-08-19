@@ -13,9 +13,9 @@ return [
     |
     | Supported: "smtp", "mail", "sendmail", "mailgun", "mandrill", "ses", "log"
     |
-    */
+     */
 
-    'driver' => env('MAIL_DRIVER', 'smtp'),
+    'driver' => env('MAIL_DRIVER', 'sendcloud'),
 
     /*
     |--------------------------------------------------------------------------
@@ -26,7 +26,7 @@ return [
     | applications. A default option is provided that is compatible with
     | the Mailgun mail service which will provide reliable deliveries.
     |
-    */
+     */
 
     'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
 
@@ -39,7 +39,7 @@ return [
     | users of the application. Like the host we have set this value to
     | stay compatible with the Mailgun e-mail application by default.
     |
-    */
+     */
 
     'port' => env('MAIL_PORT', 587),
 
@@ -52,11 +52,11 @@ return [
     | the same address. Here, you may specify a name and address that is
     | used globally for all e-mails that are sent by your application.
     |
-    */
+     */
 
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', null),
-        'name'    => env('MAIL_FROM_NAME', 'PHPHub'),
+        'name' => env('MAIL_FROM_NAME', 'PHPHub'),
     ],
 
     /*
@@ -68,7 +68,7 @@ return [
     | the application send e-mail messages. A sensible default using the
     | transport layer security protocol should provide great security.
     |
-    */
+     */
 
     'encryption' => env('MAIL_ENCRYPTION', 'tls'),
 
@@ -81,7 +81,7 @@ return [
     | set it here. This will get used to authenticate with your server on
     | connection. You may also set the "password" value below this one.
     |
-    */
+     */
 
     'username' => env('MAIL_USERNAME'),
 
@@ -94,7 +94,7 @@ return [
     | messages from your application. This will be given to the server on
     | connection so that the application will be able to send messages.
     |
-    */
+     */
 
     'password' => env('MAIL_PASSWORD'),
 
@@ -107,7 +107,7 @@ return [
     | the path to where Sendmail lives on this server. A default path has
     | been provided here, which will work well on most of your systems.
     |
-    */
+     */
 
     'sendmail' => '/usr/sbin/sendmail -bs',
 
@@ -120,7 +120,7 @@ return [
     | web and will instead be written to your application's logs files so
     | you may inspect the message. This is great for local development.
     |
-    */
+     */
 
     'pretend' => env('MAIL_PRETEND', false),
 

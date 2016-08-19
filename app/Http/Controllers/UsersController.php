@@ -1,17 +1,16 @@
 <?php namespace App\Http\Controllers;
 
-use App\Http\Requests;
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\Topic;
-use App\Models\Reply;
-use Illuminate\Http\Request;
-use Phphub\Github\GithubUserDataReader;
-use Cache;
-use Auth;
-use Flash;
 use App\Http\Requests\UpdateUserRequest;
 use App\Jobs\SendActivateMail;
+use App\Models\Reply;
+use App\Models\Topic;
+use App\Models\User;
+use Auth;
+use Cache;
+use Flash;
+use Illuminate\Http\Request;
+use Phphub\Github\GithubUserDataReader;
 
 class UsersController extends Controller
 {
@@ -21,8 +20,8 @@ class UsersController extends Controller
             'only' => [
                 'edit', 'update', 'destroy',
                 'doFollow', 'editAvatar', 'updateAvatar',
-                'editEmailNotify', 'updateEmailNotify', 'emailVerificationRequired'
-             ]
+                'editEmailNotify', 'updateEmailNotify', 'emailVerificationRequired',
+            ],
         ]);
     }
 
@@ -35,8 +34,8 @@ class UsersController extends Controller
 
     public function show($id)
     {
-        $user    = User::findOrFail($id);
-        $topics  = Topic::whose($user->id)->recent()->limit(20)->get();
+        $user = User::findOrFail($id);
+        $topics = Topic::whose($user->id)->recent()->limit(20)->get();
         $replies = Reply::whose($user->id)->recent()->limit(20)->get();
         return view('users.show', compact('user', 'topics', 'replies'));
     }
@@ -56,10 +55,10 @@ class UsersController extends Controller
         $old_email = $user->email;
 
         $data = $request->only(
-                'github_name', 'real_name', 'city',
-                'company', 'twitter_account', 'personal_website',
-                'introduction', 'weibo_name', 'weibo_id', 'email','linkedin'
-            );
+            'github_name', 'real_name', 'city',
+            'company', 'twitter_account', 'personal_website',
+            'introduction', 'weibo_name', 'weibo_id', 'email', 'linkedin'
+        );
 
         if ($file = $request->file('payment_qrcode')) {
             $upload_status = app('Phphub\Handler\ImageUploadHandler')->uploadImage($file);
@@ -70,9 +69,9 @@ class UsersController extends Controller
 
         Flash::success(lang('Operation succeeded.'));
 
-        if ($user->email && $user->email != $old_email) {
-            dispatch(new SendActivateMail($user));
-        }
+        // if ($user->email && $user->email != $old_email) {
+        //     dispatch(new SendActivateMail($user));
+        // }
 
         return redirect(route('users.edit', $id));
     }
@@ -128,8 +127,8 @@ class UsersController extends Controller
         $user = User::findOrFail($id);
         $sessions = OAuthSession::where([
             'owner_type' => 'user',
-            'owner_id'   => Auth::id(),
-            ])
+            'owner_id' => Auth::id(),
+        ])
             ->with('token')
             ->lists('id') ?: [];
 
@@ -183,7 +182,7 @@ class UsersController extends Controller
 
     public function githubApiProxy($username)
     {
-        $cache_name = 'github_api_proxy_user_'.$username;
+        $cache_name = 'github_api_proxy_user_' . $username;
         return Cache::remember($cache_name, 1440, function () use ($username) {
             $result = (new GithubUserDataReader())->getDataFromUserName($username);
             return response()->json($result);
@@ -197,12 +196,12 @@ class UsersController extends Controller
 
     public function refreshCache($id)
     {
-        $user =  User::findOrFail($id);
+        $user = User::findOrFail($id);
 
         $user_info = (new GithubUserDataReader())->getDataFromUserName($user->github_name);
 
         // Refresh the GitHub card proxy cache.
-        $cache_name = 'github_api_proxy_user_'.$user->github_name;
+        $cache_name = 'github_api_proxy_user_' . $user->github_name;
         Cache::put($cache_name, $user_info, 1440);
 
         // Refresh the avatar cache.

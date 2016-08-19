@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 
 class SiteStatus extends Model
 {
@@ -16,6 +16,9 @@ class SiteStatus extends Model
                 break;
             case 'wechat':
                 self::collect('new_user_from_wechat');
+                break;
+            case 'kuaiyudian':
+                self::collect('new_user_from_kuaiyudian');
                 break;
         }
     }
