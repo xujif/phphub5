@@ -141,8 +141,7 @@ class AuthController extends Controller implements UserCreatorListener
             $oauthData['kuaiyudian_id'] = $registerUserData->id;
             $oauthData['name'] = $registerUserData->nickname;
             $oauthData['email'] = $registerUserData->email;
-            $oauthData['verification_token'] = null;
-            $oauthData['verified'] = true;
+
         }
 
         $oauthData['driver'] = $driver;
