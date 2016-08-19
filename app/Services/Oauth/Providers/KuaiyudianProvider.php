@@ -57,7 +57,7 @@ class KuaiyudianProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getUserByToken($token)
     {
-        $response = $this->getHttpClient()->get(rtrim(config('services.kuaiyudian.auth_base_uri'), '/') . 'oauth/user/info',
+        $response = $this->getHttpClient()->get(rtrim(config('services.kuaiyudian.auth_base_uri'), '/') . '/oauth/user/info',
             ['headers' => ['Authorization' => 'Bearer ' . $token]]);
 
         return $this->checkError(json_decode($response->getBody(), true));
