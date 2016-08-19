@@ -73,13 +73,8 @@
               </li>
 
           @else
-              <a href="{{ URL::route('auth.oauth', ['driver' => 'wechat']) }}" class="btn btn-success login-btn weichat-login-btn">
+              <a href="{{ URL::route('auth.oauth', ['driver' => 'kuaiyudian']) }}" class="btn btn-success login-btn weichat-login-btn">
                 <i class="fa fa-weixin"></i>
-                {{ lang('Login') }}
-              </a>
-
-              <a href="{{ URL::route('auth.oauth', ['driver' => 'github']) }}" class="btn btn-info login-btn">
-                <i class="fa fa-github-alt"></i>
                 {{ lang('Login') }}
               </a>
           @endif
