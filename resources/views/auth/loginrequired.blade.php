@@ -19,8 +19,7 @@
               <div class="alert alert-warning">
                   {!! lang('You need to login to proceed.') !!}
               </div>
-              <a class="btn btn-lg btn-primary btn-block" id="login-required-submit" href="{{ URL::route('auth.oauth', ['driver' => 'github']) }}"><i class="fa fa-github-alt"></i> {{lang('Login with GitHub')}}</a>
-              <a class="btn btn-lg btn-success btn-block" href="{{ URL::route('auth.oauth', ['driver' => 'wechat']) }}"><i class="fa fa-weixin" ></i> {{lang('Login with WeChat')}}</a>
+              <a class="btn btn-lg btn-success btn-block" href="{{ URL::route('auth.oauth', ['driver' => 'kuaiyudian']) }}"><i class="fa fa-weixin" ></i>登录</a>
             </fieldset>
 
         </form>
