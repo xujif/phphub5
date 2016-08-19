@@ -7,9 +7,9 @@
     <div id="top-navbar-collapse" class="navbar-collapse">
       <ul class="nav navbar-nav">
         <li class="{{ (Request::is('topics*') && !Request::is('categories*') ? ' active' : '') }}"><a href="{{ route('topics.index') }}">{{ lang('Topics') }}</a></li>
-        <li class="{{ Request::is('categories/6') ? ' active' : '' }}"><a href="{{ route('categories.show', [6, 'filter' => 'recent']) }}">教程</a></li>
-        <li class="{{ Request::is('categories/1') ? ' active' : '' }}"><a href="{{ route('categories.show', 1) }}">{{ lang('Jobs') }}</a></li>
-        <li class="{{ Request::is('categories/4') ? ' active' : '' }}"><a href="{{ route('categories.show', 4) }}">问答</a></li>
+        @foreach(\App\Models\Category::all() as $c)
+        <li class="{{ Request::is('categories/'.$c->id) ? ' active' : '' }}"><a href="{{ route('categories.show', [$c->id, 'filter' => 'recent']) }}">{{$c->name}}</a></li>
+        @endforeach
         <li class="{{ (Request::is('sites') ? ' active' : '') }}"><a href="{{ route('sites.index') }}">{{ lang('Sites') }}</a></li>
         <li class="{{ (Request::is('topics/2541') ? ' active' : '') }}"><a href="https://phphub.org/topics/2541">Wiki</a></li>
       </ul>
