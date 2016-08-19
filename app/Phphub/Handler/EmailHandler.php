@@ -2,30 +2,27 @@
 
 namespace Phphub\Handler;
 
-use App\Models\User;
+use App\Models\NotificationMailLog;
 use App\Models\Reply;
 use App\Models\Topic;
-use App\Models\Mention;
-use App\Models\Append;
-use App\Models\NotificationMailLog;
+use App\Models\User;
 use Illuminate\Mail\Message;
-use Mail;
-use Naux\Mail\SendCloudTemplate;
 use Jrean\UserVerification\Facades\UserVerification;
+use Mail;
 
 class EmailHandler
 {
     protected $methodMap = [
-        'at'                   => 'sendAtNotifyMail',
-        'attention'            => 'sendAttentionNotifyMail',
-        'vote_append'          => 'sendVoteAppendNotifyMail',
-        'comment_append'       => 'sendCommentAppendNotifyMail',
-        'follow'               => 'sendFollowNotifyMail',
-        'new_reply'            => 'sendNewReplyNotifyMail',
-        'reply_upvote'         => 'sendReplyUpvoteNotifyMail',
-        'topic_attent'         => 'sendTopicAttentNotifyMail',
+        'at' => 'sendAtNotifyMail',
+        'attention' => 'sendAttentionNotifyMail',
+        'vote_append' => 'sendVoteAppendNotifyMail',
+        'comment_append' => 'sendCommentAppendNotifyMail',
+        'follow' => 'sendFollowNotifyMail',
+        'new_reply' => 'sendNewReplyNotifyMail',
+        'reply_upvote' => 'sendReplyUpvoteNotifyMail',
+        'topic_attent' => 'sendTopicAttentNotifyMail',
         'topic_mark_excellent' => 'sendTopicMarkExcellentNotifyMail',
-        'topic_upvote'         => 'sendTopicUpvoteNotifyMail',
+        'topic_upvote' => 'sendTopicUpvoteNotifyMail',
     ];
 
     protected $type;
@@ -39,13 +36,9 @@ class EmailHandler
     {
         UserVerification::generate($user);
         $token = $user->verification_token;
-        Mail::send('emails.fake', [], function (Message $message) use ($user, $token) {
+        Mail::send('emails.template_active', ['name' => $user->name,
+            'url' => url('verification', $user->verification_token) . '?email=' . urlencode($user->email)], function (Message $message) use ($user, $token) {
             $message->subject(lang('Please verify your email address'));
-
-            $message->getSwiftMessage()->setBody(new SendCloudTemplate('template_active', [
-                'name' => $user->name,
-                'url'  => url('verification', $user->verification_token).'?email='.urlencode($user->email),
-            ]));
             $message->to($user->email);
         });
     }
@@ -78,18 +71,14 @@ class EmailHandler
             return false;
         }
 
-        Mail::send('emails.fake', [], function (Message $message) {
-            $message->subject(lang('Your topic have new reply'));
-
-            $message->getSwiftMessage()->setBody(new SendCloudTemplate('notification_mail', [
-                'name'     => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
-                'action'   => " 回复了你的主题: <a href='" . url(route('topics.show', $this->reply->topic_id)) . "' target='_blank'>{$this->reply->topic->title}</a>
+        Mail::send('emails.notification_mail', [
+            'name' => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
+            'action' => " 回复了你的主题: <a href='" . url(route('topics.show', $this->reply->topic_id)) . "' target='_blank'>{$this->reply->topic->title}</a>
                               <br /><br />内容如下：<br />",
-                'content'  => $this->reply->body,
-            ]));
-
+            'content' => $this->reply->body,
+        ], function (Message $message) {
+            $message->subject(lang('Your topic have new reply'));
             $message->to($this->toUser->email);
-
             $this->generateMailLog($this->reply->body);
         });
     }
@@ -100,15 +89,13 @@ class EmailHandler
             return false;
         }
 
-        Mail::send('emails.fake', [], function (Message $message) {
-            $message->subject('有用户在主题中提及你');
-
-            $message->getSwiftMessage()->setBody(new SendCloudTemplate('notification_mail', [
-                'name'     => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
-                'action'   => " 在主题: <a href='" . url(route('topics.show', $this->reply->topic_id)) . "' target='_blank'>{$this->reply->topic->title}</a> 中提及了你
+        Mail::send('emails.notification_mail', [
+            'name' => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
+            'action' => " 在主题: <a href='" . url(route('topics.show', $this->reply->topic_id)) . "' target='_blank'>{$this->reply->topic->title}</a> 中提及了你
                               <br /><br />内容如下：<br />",
-                'content'  => $this->reply->body,
-            ]));
+            'content' => $this->reply->body,
+        ], function (Message $message) {
+            $message->subject('有用户在主题中提及你');
 
             $message->to($this->toUser->email);
             $this->generateMailLog($this->reply->body);
@@ -121,14 +108,12 @@ class EmailHandler
             return false;
         }
 
-        Mail::send('emails.fake', [], function (Message $message) {
+        Mail::send('emails.notification_mail', [
+            'name' => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
+            'action' => " 关注了你的主题: <a href='" . url(route('topics.show', $this->topic->id)) . "' target='_blank'>{$this->topic->title}</a>",
+            'content' => '',
+        ], function (Message $message) {
             $message->subject('有用户关注了你的主题');
-
-            $message->getSwiftMessage()->setBody(new SendCloudTemplate('notification_mail', [
-                'name'    => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
-                'action'  => " 关注了你的主题: <a href='" . url(route('topics.show', $this->topic->id)) . "' target='_blank'>{$this->topic->title}</a>",
-                'content' => '',
-            ]));
 
             $message->to($this->toUser->email);
             $this->generateMailLog();
@@ -141,15 +126,13 @@ class EmailHandler
             return false;
         }
 
-        Mail::send('emails.fake', [], function (Message $message) {
-            $message->subject('有用户回复了你关注的主题');
-
-            $message->getSwiftMessage()->setBody(new SendCloudTemplate('notification_mail', [
-                'name'     => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
-                'action'   => " 回复了你关注的主题: <a href='" . url(route('topics.show', $this->reply->topic_id)) . "' target='_blank'>{$this->reply->topic->title}</a>
+        Mail::send('emails.notification_mail', [
+            'name' => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
+            'action' => " 回复了你关注的主题: <a href='" . url(route('topics.show', $this->reply->topic_id)) . "' target='_blank'>{$this->reply->topic->title}</a>
                               <br /><br />回复内容如下：<br />",
-                'content'  => $this->reply->body,
-            ]));
+            'content' => $this->reply->body,
+        ], function (Message $message) {
+            $message->subject('有用户回复了你关注的主题');
 
             $message->to($this->toUser->email);
             $this->generateMailLog($this->reply->body);
@@ -162,16 +145,13 @@ class EmailHandler
             return false;
         }
 
-        Mail::send('emails.fake', [], function (Message $message) {
-            $message->subject('你关注的话题有新附言');
-
-            $message->getSwiftMessage()->setBody(new SendCloudTemplate('notification_mail', [
-                'name'     => "",
-                'action'   => " 你关注的话题: <a href='" . url(route('topics.show', $this->topic->id)) . "' target='_blank'>{$this->topic->title}</a> 有新附言
+        Mail::send('emails.notification_mail', [
+            'name' => "",
+            'action' => " 你关注的话题: <a href='" . url(route('topics.show', $this->topic->id)) . "' target='_blank'>{$this->topic->title}</a> 有新附言
                               <br /><br />附言内容如下：<br />",
-                'content'  => $this->body,
-            ]));
-
+            'content' => $this->body,
+        ], function (Message $message) {
+            $message->subject('你关注的话题有新附言');
             $message->to($this->toUser->email);
             $this->generateMailLog($this->body);
         });
@@ -183,15 +163,13 @@ class EmailHandler
             return false;
         }
 
-        Mail::send('emails.fake', [], function (Message $message) {
-            $message->subject('你留言的话题有新附言');
-
-            $message->getSwiftMessage()->setBody(new SendCloudTemplate('notification_mail', [
-                'name'     => "",
-                'action'   => " 你留言的话题: <a href='" . url(route('topics.show', $this->topic->id)) . "' target='_blank'>{$this->topic->title}</a> 有新附言
+        Mail::send('emails.notification_mail', [
+            'name' => "",
+            'action' => " 你留言的话题: <a href='" . url(route('topics.show', $this->topic->id)) . "' target='_blank'>{$this->topic->title}</a> 有新附言
                               <br /><br />附言内容如下：<br />",
-                'content'  => $this->body,
-            ]));
+            'content' => $this->body,
+        ], function (Message $message) {
+            $message->subject('你留言的话题有新附言');
 
             $message->to($this->toUser->email);
             $this->generateMailLog($this->body);
@@ -200,14 +178,12 @@ class EmailHandler
 
     protected function sendFollowNotifyMail()
     {
-        Mail::send('emails.fake', [], function (Message $message) {
+        Mail::send('emails.notification_mail', [
+            'name' => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
+            'action' => " 关注了你",
+            'content' => "",
+        ], function (Message $message) {
             $message->subject('有用户关注了你');
-
-            $message->getSwiftMessage()->setBody(new SendCloudTemplate('notification_mail', [
-                'name'     => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
-                'action'   => " 关注了你",
-                'content'  => "",
-            ]));
 
             $message->to($this->toUser->email);
             $this->generateMailLog('');
@@ -220,15 +196,13 @@ class EmailHandler
             return false;
         }
 
-        Mail::send('emails.fake', [], function (Message $message) {
-            $message->subject('有用户赞了你的回复');
-
-            $message->getSwiftMessage()->setBody(new SendCloudTemplate('notification_mail', [
-                'name'     => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
-                'action'   => " 赞了你的回复: <a href='" . url(route('topics.show', $this->reply->topic_id)) . "' target='_blank'>{$this->reply->topic->title}</a>
+        Mail::send('emails.notification_mail', [
+            'name' => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
+            'action' => " 赞了你的回复: <a href='" . url(route('topics.show', $this->reply->topic_id)) . "' target='_blank'>{$this->reply->topic->title}</a>
                               <br /><br />你的回复内容如下：<br />",
-                'content'  => $this->reply->body,
-            ]));
+            'content' => $this->reply->body,
+        ], function (Message $message) {
+            $message->subject('有用户赞了你的回复');
 
             $message->to($this->toUser->email);
             $this->generateMailLog($this->reply->body);
@@ -241,14 +215,12 @@ class EmailHandler
             return false;
         }
 
-        Mail::send('emails.fake', [], function (Message $message) {
+        Mail::send('emails.notification_mail', [
+            'name' => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
+            'action' => " 推荐了你的主题: <a href='" . url(route('topics.show', $this->topic->id)) . "' target='_blank'>{$this->topic->title}</a>",
+            'content' => '',
+        ], function (Message $message) {
             $message->subject('管理员推荐了你的主题');
-
-            $message->getSwiftMessage()->setBody(new SendCloudTemplate('notification_mail', [
-                'name'    => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
-                'action'  => " 推荐了你的主题: <a href='" . url(route('topics.show', $this->topic->id)) . "' target='_blank'>{$this->topic->title}</a>",
-                'content' => '',
-            ]));
 
             $message->to($this->toUser->email);
             $this->generateMailLog();
@@ -261,14 +233,12 @@ class EmailHandler
             return false;
         }
 
-        Mail::send('emails.fake', [], function (Message $message) {
+        Mail::send('emails.notification_mail', [
+            'name' => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
+            'action' => " 赞了你的主题: <a href='" . url(route('topics.show', $this->topic->id)) . "' target='_blank'>{$this->topic->title}</a>",
+            'content' => '',
+        ], function (Message $message) {
             $message->subject('有用户赞了你的主题');
-
-            $message->getSwiftMessage()->setBody(new SendCloudTemplate('notification_mail', [
-                'name'    => "<a href='" . url(route('users.show', $this->fromUser->id)) . "' target='_blank'>{$this->fromUser->name}</a>",
-                'action'  => " 赞了你的主题: <a href='" . url(route('topics.show', $this->topic->id)) . "' target='_blank'>{$this->topic->title}</a>",
-                'content' => '',
-            ]));
 
             $message->to($this->toUser->email);
             $this->generateMailLog();

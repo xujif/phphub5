@@ -81,7 +81,8 @@ class AuthController extends Controller implements UserCreatorListener
         $oauthUser = array_merge(Session::get('oauthData'), $request->only('name', 'email'));
         $userData = array_only($oauthUser, array_keys($request->rules()));
         $userData['register_source'] = $oauthUser['driver'];
-
+        $oauthData['verification_token'] = $oauthUser['verification_token'];
+        $oauthData['verified'] = $oauthUser['verified'];
         return app(\Phphub\Creators\UserCreator::class)->create($this, $userData);
     }
 
