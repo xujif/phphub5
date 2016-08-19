@@ -2,27 +2,24 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Models\User;
-use Validator;
 use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\ThrottlesLogins;
-use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
-use Illuminate\Http\Request;
-use Session;
+use App\Http\Controllers\Traits\SocialiteHelper;
+use App\Http\Requests\StoreUserRequest;
+use App\Models\User;
 use Auth;
 use Flash;
-use App\Http\Requests\StoreUserRequest;
-use Phphub\Listeners\UserCreatorListener;
-use Jrean\UserVerification\Traits\VerifiesUsers;
-use Jrean\UserVerification\Facades\UserVerification;
-use Jrean\UserVerification\Exceptions\UserNotFoundException;
-use Jrean\UserVerification\Exceptions\UserIsVerifiedException;
+use Illuminate\Http\Request;
 use Jrean\UserVerification\Exceptions\TokenMismatchException;
-use App\Http\Controllers\Traits\SocialiteHelper;
+use Jrean\UserVerification\Exceptions\UserIsVerifiedException;
+use Jrean\UserVerification\Exceptions\UserNotFoundException;
+use Jrean\UserVerification\Facades\UserVerification;
+use Jrean\UserVerification\Traits\VerifiesUsers;
+use Phphub\Listeners\UserCreatorListener;
+use Session;
 
 class AuthController extends Controller implements UserCreatorListener
 {
-    use VerifiesUsers,SocialiteHelper;
+    use VerifiesUsers, SocialiteHelper;
 
     /**
      * Create a new authentication controller instance.
@@ -65,7 +62,7 @@ class AuthController extends Controller implements UserCreatorListener
      */
     public function create()
     {
-        if (! Session::has('oauthData')) {
+        if (!Session::has('oauthData')) {
             return redirect(route('login'));
         }
 
@@ -78,7 +75,7 @@ class AuthController extends Controller implements UserCreatorListener
      */
     public function store(StoreUserRequest $request)
     {
-        if (! Session::has('oauthData')) {
+        if (!Session::has('oauthData')) {
             return redirect(route('login'));
         }
         $oauthUser = array_merge(Session::get('oauthData'), $request->only('name', 'email'));
@@ -138,6 +135,11 @@ class AuthController extends Controller implements UserCreatorListener
             $oauthData['name'] = $registerUserData->nickname;
             $oauthData['email'] = $registerUserData->email;
             $oauthData['wechat_unionid'] = $registerUserData->user['unionid'];
+        } elseif ($driver == 'kuaiyudian') {
+            $oauthData['image_url'] = $registerUserData->avatar;
+            $oauthData['kuaiyudian_id'] = $registerUserData->id;
+            $oauthData['name'] = $registerUserData->nickname;
+            $oauthData['email'] = $registerUserData->email;
         }
 
         $oauthData['driver'] = $driver;
