@@ -13,7 +13,7 @@ class KuaiyudianProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getAuthUrl($state)
     {
-        return $this->buildAuthUrlFromBase(config('services.kuaiyudian.auth_base_uri') . '/oauth/authorize', $state);
+        return $this->buildAuthUrlFromBase(rtrim(config('services.kuaiyudian.auth_base_uri'), '/') . '/oauth/authorize', $state);
     }
 
     /**
@@ -21,7 +21,7 @@ class KuaiyudianProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getTokenUrl()
     {
-        return config('services.kuaiyudian.auth_base_uri') . '/oauth/access_token';
+        return rtrim(config('services.kuaiyudian.auth_base_uri'), '/') . '/oauth/access_token';
     }
 
     /**
@@ -57,7 +57,7 @@ class KuaiyudianProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getUserByToken($token)
     {
-        $response = $this->getHttpClient()->get(config('services.kuaiyudian.auth_base_uri') . '/user/info',
+        $response = $this->getHttpClient()->get(rtrim(config('services.kuaiyudian.auth_base_uri'), '/') . 'oauth/user/info',
             ['headers' => ['Authorization' => 'Bearer ' . $token]]);
 
         return $this->checkError(json_decode($response->getBody(), true));
