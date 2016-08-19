@@ -64,8 +64,7 @@ trait SocialiteHelper
         } elseif ($driver == 'wechat') {
             $currentUser->wechat_openid = $oauthUser->id;
             $currentUser->wechat_unionid = $oauthUser->user['unionid'];
-        }
-         } elseif ($driver == 'kuaiyudian') {
+        } elseif ($driver == 'kuaiyudian') {
             $currentUser->kuaiyudian_id = $oauthUser->id;
         }
 
